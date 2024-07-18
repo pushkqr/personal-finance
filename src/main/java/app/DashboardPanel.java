@@ -276,7 +276,7 @@ public class DashboardPanel extends JPanel {
     }
 
     private JPanel createViewTransactionsPanel() {
-        JPanel panel = new JPanel();
+        JPanel panel = new JPanel(new BorderLayout());
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(PANEL_COLOR);
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -285,15 +285,26 @@ public class DashboardPanel extends JPanel {
         transactionsLabel.setForeground(TEXT_COLOR);
         transactionsLabel.setFont(BOLD_FONT);
         panel.add(transactionsLabel);
-        panel.add(Box.createRigidArea(new Dimension(0, 10))); // Spacer
+        panel.add(Box.createRigidArea(new Dimension(0, 10)));
 
         List<Transaction> transactions = TransactionService.getTransactionsByUser(user.getId());
-        for (Transaction transaction : transactions) {
-            JLabel transactionLabel = new JLabel("[" + transaction.getCategory() + "] : Rs." + transaction.getAmount() + " (" + transaction.getDate() + ")");
-            transactionLabel.setForeground(TEXT_COLOR);
-            transactionLabel.setFont(FONT);
-            panel.add(transactionLabel);
+
+        String[] columns = {"ID", "Amount", "Category", "Type", "Date"};
+        Object[][] data = new Object[transactions.size()][5];
+
+        for (int i = 0; i < transactions.size(); i++) {
+            Transaction transaction = transactions.get(i);
+            data[i][0] = transaction.getId();
+            data[i][1] = transaction.getAmount();
+            data[i][2] = transaction.getCategory();
+            data[i][3] = transaction.getType();
+            data[i][4] = transaction.getDate();
         }
+
+        JTable table = new JTable(data, columns);
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        panel.add(scrollPane, BorderLayout.CENTER);
 
         return panel;
     }
