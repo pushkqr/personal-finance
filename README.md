@@ -23,28 +23,15 @@ This Java application helps users manage their personal finances through a graph
 
    ```bash
    git clone https://github.com/pushkqr/personal-finance.git
-   cd src/main/java/app
-   ```
-
-2. Build the project using Maven:
    
-   ```bash
-   mvn clean package
+   cd src\main\java
    ```
 
 ## Running the application
 
-**Using Maven:**
-
-Run the application using Maven:
-
-```bash
-mvn exec:java -Dexec.mainClass="app.Main"
-```
-
 **Using executable JAR:**
 
-Alternatively, you can run the already compiled executable JAR file:
+You can run the already compiled executable JAR file:
 
 ```bash
 java -jar finance-app.jar
