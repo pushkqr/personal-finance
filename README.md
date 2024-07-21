@@ -1,7 +1,4 @@
-Sure! Here's the updated README with additional sections for contributions, resources used, and more.
-
-```markdown
-# Personal Finance
+#Personal Finance
 
 This Java application helps users manage their personal finances through a graphical user interface (GUI). It allows users to add transactions, view account overviews, update passwords and usernames, export transaction data, and delete accounts.
 
