@@ -22,7 +22,6 @@ This Java application helps users manage their personal finances through a graph
 
    ```bash
    git clone https://github.com/pushkqr/personal-finance.git
-   cd src\main\java
    ```
 
 ## Running the application
@@ -32,6 +31,7 @@ This Java application helps users manage their personal finances through a graph
 You can run the already compiled executable JAR file:
 
 ```bash
+cd src\main\java
 java -jar finance-app.jar
 ```
 
