@@ -31,7 +31,7 @@ public class RegistrationPanel extends JPanel {
 
     private void initializeUI() {
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 245));
+        setBackground(new Color(238, 238, 238));
 
         // Logo panel
         JPanel logoPanel = createLogoPanel();
@@ -44,7 +44,7 @@ public class RegistrationPanel extends JPanel {
 
     private JPanel createLogoPanel() {
         JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 20));
-        logoPanel.setBackground(new Color(202, 244, 255));
+        logoPanel.setBackground(new Color(238,238,238));
 
         JLabel logoLabel = new JLabel();
         try {
@@ -62,7 +62,7 @@ public class RegistrationPanel extends JPanel {
 
     private JPanel createRegistrationPanel() {
         JPanel registrationPanel = new JPanel(new GridBagLayout());
-        registrationPanel.setBackground(new Color(202, 244, 255));
+        registrationPanel.setBackground(new Color(238,238,238));
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(10, 10, 10, 10);
 

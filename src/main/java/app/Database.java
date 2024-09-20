@@ -5,6 +5,8 @@ import java.sql.*;
 public class Database {
     private static final String DB_URL = "jdbc:sqlite:financeapp.db";
 
+    private Database() {}
+
     public static Connection Connect(){
         Connection conn = null;
 
@@ -21,9 +23,7 @@ public class Database {
     ////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public static void createNewDatabase(){
-        try {
-            Connection conn = Database.Connect();
-
+        try(Connection conn = Database.Connect()) {
             if(conn != null){
                 DatabaseMetaData meta = conn.getMetaData();
                 SiLog.Message("The driver name is: " + meta.getDriverName());
@@ -50,18 +50,37 @@ public class Database {
                 + " amount REAL,\n"
                 + " category TEXT,\n"
                 + " type TEXT,\n"
+                + " category_id INTEGER,\n"
+                + " type_id INTEGER,\n"
                 + " date TEXT,\n"
-                + " FOREIGN KEY(user_id) REFERENCES users(id)\n"
+                + " FOREIGN KEY(user_id) REFERENCES users(id),\n"
+                + " FOREIGN KEY(category_id) REFERENCES category(category_id),\n"
+                + " FOREIGN KEY(type_id) REFERENCES transaction_types(id)\n"
                 + ");";
 
-        try {
-            Connection conn = Database.Connect();
+        String categoriesTable = """
+                CREATE TABLE IF NOT EXISTS categories (
+                  category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  category_name TEXT NOT NULL
+                );
+                """;
 
+        String typesTable = """
+                CREATE TABLE IF NOT EXISTS transaction_types (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    type_name TEXT NOT NULL
+                );
+                """;
+
+
+        try(Connection conn = Database.Connect()) {
             if(conn != null){
                 Statement stmt = conn.createStatement();
 
                 stmt.execute(usersTable);
+                stmt.execute(categoriesTable);
                 stmt.execute(transactionsTable);
+                stmt.execute(typesTable);
                 SiLog.Message("Tables have been created.");
             }
         }
@@ -72,5 +91,18 @@ public class Database {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    public static void initTables() {
+        try(Connection conn = Database.Connect()) {
+            if(conn != null){
+                String q1 = "INSERT INTO categories (category_name) VALUES ('Food'), ('Salary'), ('Entertainment'), ('Utilities');";
+                String q2 = "INSERT INTO transaction_types (type_name) VALUES ('Income'), ('Expense');";
+                Statement stmt = conn.createStatement();
+                stmt.execute(q1);
+                stmt.execute(q2);
+            }
+        }
+        catch (SQLException e){
+            SiLog.Error("Initialization failed: " + e.getMessage());
+        }
+    }
 }

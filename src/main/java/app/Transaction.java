@@ -7,14 +7,17 @@ public class Transaction {
     private String category;
     private String type;
     private String date;
+    private int category_id;
+    private int type_id;
 
-    public Transaction(int userId, double amount, String category, String type, String date){
+    public Transaction(int userId, double amount, String category, String type, String date, int category_id, int type_id){
         this.userId = userId;
         this.amount = amount;
         this.category = category;
         this.type = type;
         this.date = date;
-
+        this.category_id = category_id;
+        this.type_id = type_id;
     }
     public int getId() {return id;}
     public void setId(int id) {this.id = id;}
@@ -28,4 +31,6 @@ public class Transaction {
     public void setType(String type) {this.type = type;}
     public String getDate() {return date;}
     public void setDate(String date) {this.date = date;}
+    public int getCategoryID() {return category_id;}
+    public int getTypeID() {return type_id;}
 }

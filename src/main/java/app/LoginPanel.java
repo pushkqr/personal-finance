@@ -31,7 +31,7 @@ public class LoginPanel extends JPanel {
 
     private void initializeUI() {
         setLayout(new BorderLayout());
-        setBackground(new Color(202, 244, 255));
+        setBackground(new Color(0, 0, 0));
 
         // Top panel for title and logo
         JPanel topPanel = createTopPanel();
@@ -44,11 +44,11 @@ public class LoginPanel extends JPanel {
 
     private JPanel createTopPanel() {
         JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(new Color(202, 244, 255));
+        topPanel.setBackground(new Color(238,238,238));
 
         // Logo panel
         JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 20));
-        logoPanel.setBackground(new Color(202, 244, 255));
+        logoPanel.setBackground(new Color(238,238,238));
         JLabel logoLabel = new JLabel();
         try {
             ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/file.png")));
@@ -65,7 +65,7 @@ public class LoginPanel extends JPanel {
 
     private JPanel createLoginPanel() {
         JPanel loginPanel = new JPanel(new GridBagLayout());
-        loginPanel.setBackground(new Color(202, 244, 255));
+        loginPanel.setBackground(new Color(238,238,238));
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.insets = new Insets(10, 20, 10, 20);
 
