@@ -16,7 +16,7 @@ public class SiLog {
     private static void ensureLogger() {
         if (logger == null) {
             logger = Logger.getLogger(SiLog.class.getName());
-            logger.setUseParentHandlers(false); // Disable default console handler
+            logger.setUseParentHandlers(false);
             ConsoleHandler consoleHandler = new ConsoleHandler();
             consoleHandler.setFormatter(new SimpleFormatter() {
                 @Override

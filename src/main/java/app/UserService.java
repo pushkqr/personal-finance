@@ -10,12 +10,13 @@ public class UserService {
         String sql = "INSERT INTO users(username, password) VALUES(?, ?);";
 
         try (Connection conn = Database.Connect();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);) {
 
             String hashpw = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
             stmt.setString(1, user.getUser());
             stmt.setString(2, hashpw);
             stmt.executeUpdate();
+
 
             ResultSet rs = stmt.getGeneratedKeys();
             if (rs.next()) {

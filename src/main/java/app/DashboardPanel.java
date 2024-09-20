@@ -9,10 +9,13 @@ import java.awt.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.sql.*;
 
 public class DashboardPanel extends JPanel {
     private User user;
@@ -100,7 +103,8 @@ public class DashboardPanel extends JPanel {
         panel.add(overviewLabel);
         panel.add(Box.createRigidArea(new Dimension(0, 10))); // Spacer
 
-        JLabel balanceLabel = new JLabel("Total Balance: Rs." + TransactionService.fetchBalance(user.getId()));
+
+        JLabel balanceLabel = new JLabel(" \u25B2 Total Balance: Rs." + TransactionService.fetchBalance(user.getId()) + " | \u25BC Total Expense: Rs. " + TransactionService.fetchExpense(user.getId()));
         balanceLabel.setForeground(TEXT_COLOR);
         balanceLabel.setFont(FONT);
         panel.add(balanceLabel);
@@ -114,7 +118,12 @@ public class DashboardPanel extends JPanel {
 
         List<Transaction> transactions = TransactionService.getTransactionsByUser(user.getId());
         for (Transaction transaction : transactions) {
-            JLabel transactionLabel = new JLabel("[" + transaction.getCategory() + "] : Rs." + transaction.getAmount());
+            JLabel transactionLabel = new JLabel();
+            if(transaction.getType().equals("Income")) {
+                transactionLabel.setText("[+] [" + transaction.getCategory() + "] : Rs." + transaction.getAmount());
+            }else {
+                transactionLabel.setText("[-] [" + transaction.getCategory() + "] : Rs." + transaction.getAmount());
+            }
             transactionLabel.setForeground(TEXT_COLOR);
             transactionLabel.setFont(FONT);
             panel.add(transactionLabel);
@@ -159,9 +168,10 @@ public class DashboardPanel extends JPanel {
         gbc.gridx = 0;
         panel.add(categoryLabel, gbc);
 
-        JTextField categoryField = new JTextField(20);
+        JComboBox<String> categoryComboBox = new JComboBox<>();
+        populateCategories(categoryComboBox);
         gbc.gridx = 1;
-        panel.add(categoryField, gbc);
+        panel.add(categoryComboBox, gbc);
 
         JLabel typeLabel = new JLabel("Type:");
         typeLabel.setForeground(TEXT_COLOR);
@@ -170,9 +180,10 @@ public class DashboardPanel extends JPanel {
         gbc.gridx = 0;
         panel.add(typeLabel, gbc);
 
-        JTextField typeField = new JTextField(20);
+        JComboBox<String> typeDropdown = new JComboBox<>();
+        populateTransactionTypes(typeDropdown);
         gbc.gridx = 1;
-        panel.add(typeField, gbc);
+        panel.add(typeDropdown, gbc);
 
         JLabel dateLabel = new JLabel("Date (dd-mm-yyyy):");
         dateLabel.setForeground(TEXT_COLOR);
@@ -193,14 +204,22 @@ public class DashboardPanel extends JPanel {
 
         addButton.addActionListener(e -> {
             String amount = amountField.getText();
-            String category = categoryField.getText();
-            String type = typeField.getText();
+            String category = (String) categoryComboBox.getSelectedItem();
+            String type = (String) typeDropdown.getSelectedItem();
             String date = dateField.getText();
+            int category_id = TransactionService.fetchCategoryId(category);
+            int type_id = TransactionService.fetchTransactionTypeId(type);
+
             if (isValidDate(date) && isValidAmount(amount)) {
-                Transaction transaction = new Transaction(user.getId(), Double.parseDouble(amount), category, type, date);
+                if (!isValidTransaction(category, type)) {
+                    JOptionPane.showMessageDialog(this, "Invalid transaction: '" + type + "' cannot be paired with '" + category + "'.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                Transaction transaction = new Transaction(user.getId(), Double.parseDouble(amount), category, type, date, category_id, type_id);
                 TransactionService.addTransaction(transaction);
                 JOptionPane.showMessageDialog(this, "Transaction added successfully.", "Add Transaction", JOptionPane.INFORMATION_MESSAGE);
-                clearFields(amountField, categoryField, typeField, dateField);
+                clearFields(amountField, dateField);
                 refreshOverviewPanel();
                 refreshViewTransactionsPanel();
             } else {
@@ -209,70 +228,6 @@ public class DashboardPanel extends JPanel {
         });
 
         return panel;
-    }
-
-    private MaskFormatter createDateFormatter() {
-        MaskFormatter formatter = null;
-        try {
-            formatter = new MaskFormatter("##-##-####");
-        } catch (ParseException ex) {
-            SiLog.Message(ex.getMessage());
-        }
-        return formatter;
-    }
-
-    private boolean isValidDate(String date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        sdf.setLenient(false);
-        try {
-            Date parsedDate = sdf.parse(date);
-            return parsedDate != null;
-        } catch (ParseException ex) {
-            SiLog.Message(ex.getMessage());
-            return false;
-        }
-    }
-
-    private boolean isValidAmount(String amount) {
-        try {
-            Double.parseDouble(amount);
-            return true;
-        } catch (NumberFormatException ex) {
-            SiLog.Message(ex.getMessage());
-            return false;
-        }
-    }
-
-    private void clearFields(JTextField... fields) {
-        for (JTextField field : fields) {
-            field.setText("");
-        }
-    }
-
-    private void exportTransactionsToFile(List<Transaction> transactions, String filePath) {
-        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
-            for (Transaction transaction : transactions) {
-                writer.println("ID:[" + transaction.getId() + "] | Amount: Rs." + transaction.getAmount() + "| Category: " + transaction.getCategory() + "| Type: " + transaction.getType() + "| Date: " + transaction.getDate());
-            }
-            JOptionPane.showMessageDialog(null,
-                    "Transaction data exported successfully.", "Export Complete", JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null,
-                    "Error exporting transaction data: " + e.getMessage(), "Export Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-
-
-    private void refreshOverviewPanel() {
-        JPanel overviewPanel = createOverviewPanel();
-        contentPanel.add(overviewPanel, "Overview");
-        ((CardLayout) contentPanel.getLayout()).show(contentPanel, "Overview");
-    }
-
-    private void refreshViewTransactionsPanel() {
-        JPanel viewTransactionsPanel = createViewTransactionsPanel();
-        contentPanel.add(viewTransactionsPanel, "View Transactions");
     }
 
     private JPanel createViewTransactionsPanel() {
@@ -320,7 +275,7 @@ public class DashboardPanel extends JPanel {
             titleLabel.setFont(BOLD_FONT);
             titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             panel.add(titleLabel);
-            panel.add(Box.createRigidArea(new Dimension(0, 20))); // Spacer
+            panel.add(Box.createRigidArea(new Dimension(0, 20)));
 
             //Update Password Panel
             JPanel updatePasswordPanel = new JPanel(new GridBagLayout());
@@ -444,7 +399,7 @@ public class DashboardPanel extends JPanel {
             panel.add(updateUsernamePanel);
             panel.add(Box.createRigidArea(new Dimension(0, 20))); // Spacer
 
-            //Export Data Panel
+        //Export Data Panel
             JPanel exportDataPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
             exportDataPanel.setBorder(BorderFactory.createTitledBorder("Export Data"));
 
@@ -482,6 +437,100 @@ public class DashboardPanel extends JPanel {
             return panel;
 
         }
+    private MaskFormatter createDateFormatter() {
+        MaskFormatter formatter = null;
+        try {
+            formatter = new MaskFormatter("##-##-####");
+        } catch (ParseException ex) {
+            SiLog.Message(ex.getMessage());
+        }
+        return formatter;
+    }
 
+    private boolean isValidDate(String date) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        sdf.setLenient(false);
+        try {
+            Date parsedDate = sdf.parse(date);
+            return parsedDate != null;
+        } catch (ParseException ex) {
+            SiLog.Message(ex.getMessage());
+            return false;
+        }
+    }
+
+    private boolean isValidTransaction(String category, String type) {
+        if ("Income".equals(type) && !"Salary".equals(category)) {
+            return false;
+        } else if("Expense".equals(type) && "Salary".equals(category)) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isValidAmount(String amount) {
+        try {
+            Double.parseDouble(amount);
+            return true;
+        } catch (NumberFormatException ex) {
+            SiLog.Message(ex.getMessage());
+            return false;
+        }
+    }
+
+    private void clearFields(JTextField... fields) {
+        for (JTextField field : fields) {
+            field.setText("");
+        }
+    }
+
+    private void exportTransactionsToFile(List<Transaction> transactions, String filePath) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
+            for (Transaction transaction : transactions) {
+                writer.println("ID:[" + transaction.getId() + "] | Amount: Rs." + transaction.getAmount() + "| Category: " + transaction.getCategory() + "| Type: " + transaction.getType() + "| Date: " + transaction.getDate());
+            }
+            JOptionPane.showMessageDialog(null,
+                    "Transaction data exported successfully.", "Export Complete", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Error exporting transaction data: " + e.getMessage(), "Export Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void refreshOverviewPanel() {
+        JPanel overviewPanel = createOverviewPanel();
+        contentPanel.add(overviewPanel, "Overview");
+        ((CardLayout) contentPanel.getLayout()).show(contentPanel, "Overview");
+    }
+
+    private void refreshViewTransactionsPanel() {
+        JPanel viewTransactionsPanel = createViewTransactionsPanel();
+        contentPanel.add(viewTransactionsPanel, "View Transactions");
+    }
+    private void populateCategories(JComboBox<String> comboBox) {
+            try(Connection conn = Database.Connect()){
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery("SELECT category_name FROM categories");
+
+                while (rs.next()) {
+                    comboBox.addItem(rs.getString("category_name"));
+                }
+            }catch (SQLException e){
+                SiLog.Message("Could not fetch categories: " + e.getMessage());
+            }
+        }
+
+        private void populateTransactionTypes(JComboBox<String> dropDown){
+            try(Connection conn = Database.Connect()){
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery("SELECT type_name FROM transaction_types");
+
+                while (rs.next()) {
+                    dropDown.addItem(rs.getString("type_name"));
+                }
+            }catch (SQLException e){
+                SiLog.Message("Could not fetch categories: " + e.getMessage());
+            }
+        }
 }
 
