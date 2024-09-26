@@ -1,5 +1,7 @@
 package app;
 
+import org.apache.batik.swing.JSVGCanvas;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -43,23 +45,28 @@ public class RegistrationPanel extends JPanel {
     }
 
     private JPanel createLogoPanel() {
-        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 20));
-        logoPanel.setBackground(new Color(238,238,238));
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(new Color(238, 238, 238));
 
-        JLabel logoLabel = new JLabel();
+        JPanel logoPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 20));
+        logoPanel.setBackground(new Color(238, 238, 238));
+
+        JSVGCanvas svgCanvas = new JSVGCanvas();
+        svgCanvas.setBackground(new Color(0, 0, 0, 0));
         try {
-            ImageIcon icon = new ImageIcon(Objects.requireNonNull(getClass().getResource("/file.png")));
-            Image image = icon.getImage().getScaledInstance(180, 180, Image.SCALE_SMOOTH);
-            logoLabel.setIcon(new ImageIcon(image));
+
+            String svgPath = Objects.requireNonNull(getClass().getResource("/file.svg")).toString();
+            svgCanvas.setURI(svgPath);
         } catch (Exception e) {
-            SiLog.Message(e.getMessage());
+            SiLog.Message("Could not load SVG logo for login screen: " + e.getMessage());
         }
 
-        logoPanel.add(logoLabel);
-        logoPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0)); // Reduce gap from top
-        return logoPanel;
-    }
+        svgCanvas.setPreferredSize(new Dimension(210, 180));
+        logoPanel.add(svgCanvas);
+        topPanel.add(logoPanel, BorderLayout.CENTER);
 
+        return topPanel;
+    }
     private JPanel createRegistrationPanel() {
         JPanel registrationPanel = new JPanel(new GridBagLayout());
         registrationPanel.setBackground(new Color(238,238,238));
@@ -90,16 +97,17 @@ public class RegistrationPanel extends JPanel {
         registrationPanel.add(passwordField, constraints);
 
         JButton registerButton = createStyledButton("Register");
-        constraints.gridx = 0;
+        constraints.gridx = 1;
         constraints.gridy = 2;
-        constraints.gridwidth = 2;
         constraints.anchor = GridBagConstraints.CENTER;
         registrationPanel.add(registerButton, constraints);
 
         JButton backButton = createStyledButton("Back to Login");
         constraints.gridx = 0;
-        constraints.gridy = 3;
+        constraints.gridy = 2;
+        constraints.anchor = GridBagConstraints.CENTER;
         registrationPanel.add(backButton, constraints);
+
 
         registerButton.addActionListener(new ActionListener() {
             @Override
@@ -142,7 +150,17 @@ public class RegistrationPanel extends JPanel {
     }
 
     private JButton createStyledButton(String text) {
-        JButton button = new JButton(text);
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(getBackground());
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20); // 20 is the radius for round corners
+                super.paintComponent(g);
+            }
+        };
+
         button.setFont(customFont.deriveFont(Font.PLAIN, 18f));
         button.setFocusPainted(false);
         button.setBackground(new Color(30, 144, 255));
@@ -150,7 +168,7 @@ public class RegistrationPanel extends JPanel {
         button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setContentAreaFilled(false);
-        button.setOpaque(true);
+        button.setOpaque(false); // Set to false to let the custom painting work
         button.setBorderPainted(false);
 
         button.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -165,5 +183,6 @@ public class RegistrationPanel extends JPanel {
 
         return button;
     }
+
 
 }
