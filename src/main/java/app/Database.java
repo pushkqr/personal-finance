@@ -53,6 +53,7 @@ public class Database {
                 + " category_id INTEGER,\n"
                 + " type_id INTEGER,\n"
                 + " date TEXT,\n"
+                + " note TEXT,\n"
                 + " FOREIGN KEY(user_id) REFERENCES users(id),\n"
                 + " FOREIGN KEY(category_id) REFERENCES category(category_id),\n"
                 + " FOREIGN KEY(type_id) REFERENCES transaction_types(id)\n"
@@ -72,6 +73,18 @@ public class Database {
                 );
                 """;
 
+        String budgetsTable = """
+                CREATE TABLE IF NOT EXISTS budgets (
+                    budget_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
+                    category_id INTEGER,
+                    amount REAL NOT NULL,
+                    start_date TEXT,
+                    end_date TEXT,
+                    FOREIGN KEY(user_id) REFERENCES users(id),
+                    FOREIGN KEY(category_id) REFERENCES categories(category_id)
+                );
+                """;
 
         try(Connection conn = Database.Connect()) {
             if(conn != null){
@@ -81,6 +94,7 @@ public class Database {
                 stmt.execute(categoriesTable);
                 stmt.execute(transactionsTable);
                 stmt.execute(typesTable);
+                stmt.execute(budgetsTable);
                 SiLog.Message("Tables have been created.");
             }
         }

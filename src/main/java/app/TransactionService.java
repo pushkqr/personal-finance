@@ -6,7 +6,7 @@ import java.util.List;
 
 public class TransactionService {
     public static void addTransaction(Transaction transaction){
-        String sql = "INSERT INTO transactions(user_id, amount, category, type, date, category_id, type_id) VALUES(?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO transactions(user_id, amount, category, type, date, category_id, type_id, note) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = Database.Connect();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -17,6 +17,7 @@ public class TransactionService {
             stmt.setString(5, transaction.getDate());
             stmt.setInt(6, transaction.getCategoryID());
             stmt.setInt(7, transaction.getTypeID());
+            stmt.setString(8, transaction.getNote());
             stmt.executeUpdate();
             SiLog.Message("Transaction added successfully for user ID: " + transaction.getUserId());
         }
@@ -44,7 +45,8 @@ public class TransactionService {
                         rs.getString("type"),
                         rs.getString("date"),
                         rs.getInt("category_id"),
-                        rs.getInt("type_id")
+                        rs.getInt("type_id"),
+                        rs.getString("note")
                 );
                 t.setId(rs.getInt("id"));
                 transactions.add(t);
